@@ -1,0 +1,48 @@
+{
+  "timerDefaultSeconds": 900,
+  "enableDragAndDrop": false,
+  "groups": [
+    { "name": "Group 1", "color": "#FF8C42" },
+    { "name": "Group 2", "color": "#2E86AB" },
+    { "name": "Group 3", "color": "#A23B72" },
+    { "name": "Group 4", "color": "#F18F01" },
+    { "name": "Group 5", "color": "#27AE60" }
+  ],
+  "cards": [
+    {
+      "id": 1,
+      "type": "🎵 Music",
+      "task": "Generate an opening music for today's meeting in your favorite movie style",
+      "platforms": "Gemini, Suno/Udio",
+      "groupHint": "Suitable for Group 1 or all"
+    },
+    {
+      "id": 2,
+      "type": "🎵 Music",
+      "task": "Rewrite 'Two Tigers' with lyrics covering real workplace pain points!",
+      "platforms": "Gemini, Suno/Udio",
+      "groupHint": "Suitable for Group 2"
+    },
+    {
+      "id": 3,
+      "type": "🖼️ Image",
+      "task": "HR team building — everyone riding lobsters racing through the city",
+      "platforms": "Doubao, Jimeng, Minimax, Gemini",
+      "groupHint": "Suitable for Group 3"
+    },
+    {
+      "id": 4,
+      "type": "🖼️ Image",
+      "task": "Depict an office scene 10 years from now with humans and AI/robots working together",
+      "platforms": "Doubao, Jimeng, Minimax, Gemini",
+      "groupHint": "Suitable for all groups"
+    },
+    {
+      "id": 5,
+      "type": "🖼️ Image",
+      "task": "In Van Gogh's 'Starry Night', every star is a glowing Excel chart",
+      "platforms": "Doubao, Jimeng, Minimax, Gemini",
+      "groupHint": "Suitable for Group 5"
+    }
+  ]
+}

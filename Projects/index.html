@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI Prompt Challenge - Meeting Facilitator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#f39c12',
+                        secondary: '#2E86AB',
+                        accent: '#FF8C42',
+                        dark: '#1a2a3a',
+                        darker: '#0f1a24'
+                    },
+                    animation: {
+                        'bounce-in': 'bounceIn 0.5s ease',
+                        'pulse-slow': 'pulse 3s infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate'
+                    },
+                    keyframes: {
+                        bounceIn: {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '50%': { transform: 'scale(1.05)' },
+                            '70%': { transform: 'scale(0.9)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' }
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(243,156,18,0.5)' },
+                            '100%': { boxShadow: '0 0 20px rgba(243,156,18,0.8), 0 0 40px rgba(243,156,18,0.4)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 50%, #2c3e50 100%);
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-card-hover:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #FFD966, #FF8C42, #f39c12);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .timer-glow {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        .card-dragging {
+            opacity: 0.5;
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        .card-drag-over {
+            border-style: dashed;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+
+        .tab-active {
+            color: #f39c12;
+            border-bottom: 3px solid #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .toggle-slider {
+            transition: all 0.3s ease;
+        }
+
+        .toggle input:checked + .toggle-slider {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .toast {
+            transform: translateX(-50%) translateY(-100px);
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .popup-bounce {
+            animation: bounceIn 0.5s ease;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        textarea,
+        select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #f39c12;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.3);
+        }
+
+        input[type="color"] {
+            border: none;
+            cursor: pointer;
+        }
+
+        .hero-bg {
+            background-image: url('https://images.unsplash.com/photo-1517245386807-bb43f82c33a4?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-blend-mode: overlay;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Hero Background -->
+    <div class="fixed inset-0 hero-bg opacity-20 pointer-events-none"></div>
+
+    <div class="relative z-10 container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-5xl md:text-6xl font-extrabold mb-3 gradient-text tracking-wide">
+                <i class="fas fa-palette mr-3"></i>AI Prompt Challenge
+            </h1>
+            <p class="text-gray-400 text-lg font-light">
+                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>Creative Workshop · Meeting Facilitator
+            </p>
+        </header>
+
+        <!-- Timer Section -->
+        <div class="glass-card rounded-full px-6 py-4 mb-8 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fas fa-stopwatch text-2xl text-primary"></i>
+                <div class="timer-glow text-4xl md:text-5xl font-mono font-bold bg-black/40 px-6 py-2 rounded-full" id="timerDisplay">
+                    15:00
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button id="timerStart" class="btn-primary px-5 py-2 rounded-full font-semibold text-dark">
+                    <i class="fas fa-play mr-2"></i>Start
+                </button>
+                <button id="timerPause" class="btn-secondary px-5 py-2 rounded-full font-semibold">
+                    <i class="fas fa-pause mr-2"></i>Pause
+                </button>
+                <button id="timerReset" class="btn-secondary px-5 py-2 rounded-full font-semibold">
+                    <i class="fas fa-redo mr-2"></i>Reset
+                </button>
+            </div>
+            <div class="text-gray-400 text-sm">
+                <i class="fas fa-clock mr-1"></i>Challenge Time Limit
+            </div>
+        </div>
+
+        <!-- Assignment Section -->
+        <div class="mb-8">
+            <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-trophy text-yellow-500"></i>
+                    Challenge Assignment
+                </h2>
+                <button id="assignBtn" class="btn-primary px-8 py-3 rounded-full font-bold text-lg text-dark">
+                    <i class="fas fa-dice mr-2"></i>Assign Challenges
+                </button>
+            </div>
+            <div id="assignmentArea">
+                <div class="glass-card rounded-3xl p-12 text-center">
+                    <div class="animate-float">
+                        <i class="fas fa-hand-pointer text-6xl text-primary mb-6"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold mb-3 text-gray-200">Welcome!</h3>
+                    <p class="text-gray-400 text-lg mb-6">Click "Assign Challenges" to randomly distribute challenge cards to all groups.</p>
+                    <div class="flex justify-center gap-4 text-sm text-gray-500">
+                        <span><i class="fas fa-users mr-1"></i>5 Groups</span>
+                        <span><i class="fas fa-layer-group mr-1"></i>5 Cards</span>
+                        <span><i class="fas fa-random mr-1"></i>Random Assignment</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex flex-wrap justify-center gap-4 mb-12">
+            <button id="reassignAllBtn" class="btn-secondary px-6 py-3 rounded-full font-semibold">
+                <i class="fas fa-sync-alt mr-2"></i>Re-assign All
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 text-sm mt-12 pb-20">
+            <p><i class="fas fa-info-circle mr-1"></i>Tip: Use the <i class="fas fa-cog text-primary"></i> Settings button to customize groups, cards, and timer duration.</p>
+        </footer>
+    </div>
+
+    <!-- Config Button -->
+    <button class="config-btn fixed bottom-6 right-6 w-16 h-16 rounded-full btn-primary text-2xl z-50 animate-glow" id="configBtn">
+        <i class="fas fa-cog fa-spin-hover"></i>
+    </button>
+
+    <!-- Config Modal -->
+    <div class="modal-overlay fixed inset-0 z-[1000] hidden justify-center items-center p-4" id="configModal">
+        <div class="glass-card rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center px-6 py-4 border-b border-white/10">
+                <h2 class="text-2xl font-bold flex items-center gap-2">
+                    <i class="fas fa-cog text-primary"></i>Settings
+                </h2>
+                <button class="modal-close text-2xl hover:bg-white/10 rounded-full p-2 transition" id="configClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-white/10">
+                <button class="tab flex-1 py-3 text-center font-semibold transition tab-active" data-tab="form">
+                    <i class="fas fa-edit mr-2"></i>Form Editor
+                </button>
+                <button class="tab flex-1 py-3 text-center font-semibold text-gray-400 transition" data-tab="json">
+                    <i class="fas fa-code mr-2"></i>JSON Editor
+                </button>
+            </div>
+
+            <!-- Form Tab -->
+            <div class="tab-content active px-6 py-4 overflow-y-auto max-h-[60vh] scrollbar-thin" id="formTab">
+                <!-- Timer Setting -->
+                <div class="mb-6">
+                    <label class="block mb-2 font-semibold text-gray-300">
+                        <i class="fas fa-stopwatch mr-2 text-primary"></i>Timer Duration (seconds)
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <button id="timerMinus" class="btn-secondary w-10 h-10 rounded-full text-xl font-bold">-</button>
+                        <input type="number" id="timerDuration" value="900" min="10" max="3600" class="w-24 text-center py-2 rounded-lg text-lg font-mono">
+                        <button id="timerPlus" class="btn-secondary w-10 h-10 rounded-full text-xl font-bold">+</button>
+                    </div>
+                </div>
+
+                <!-- Drag and Drop Toggle -->
+                <div class="flex items-center gap-3 mb-6">
+                    <label class="toggle relative w-12 h-6 cursor-pointer">
+                        <input type="checkbox" id="dragDropToggle" class="opacity-0 w-0 h-0">
+                        <span class="toggle-slider absolute inset-0 bg-white/20 rounded-full before:absolute before:content-[''] before:h-5 before:w-5 before:left-1 before:bottom-1 before:bg-white before:rounded-full before:transition before:duration-300"></span>
+                    </label>
+                    <span class="text-gray-300"><i class="fas fa-arrows-alt mr-2"></i>Enable drag-and-drop card swapping</span>
+                </div>
+
+                <!-- Groups Section -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fas fa-users text-secondary"></i>Groups
+                        </h3>
+                        <button class="btn-secondary px-4 py-2 rounded-full text-sm font-semibold" id="addGroupBtn">
+                            <i class="fas fa-plus mr-1"></i>Add Group
+                        </button>
+                    </div>
+                    <div id="groupsList" class="space-y-3"></div>
+                </div>
+
+                <!-- Cards Section -->
+                <div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fas fa-layer-group text-accent"></i>Challenge Cards
+                        </h3>
+                        <button class="btn-secondary px-4 py-2 rounded-full text-sm font-semibold" id="addCardBtn">
+                            <i class="fas fa-plus mr-1"></i>Add Card
+                        </button>
+                    </div>
+                    <div id="cardsList" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <!-- JSON Tab -->
+            <div class="tab-content hidden px-6 py-4 overflow-y-auto max-h-[60vh] scrollbar-thin" id="jsonTab">
+                <div class="mb-4">
+                    <label class="block mb-2 font-semibold text-gray-300">
+                        <i class="fas fa-code mr-2 text-primary"></i>Configuration JSON
+                    </label>
+                    <textarea id="jsonEditor" rows="20" class="w-full font-mono text-sm p-4 rounded-lg scrollbar-thin"></textarea>
+                    <div class="text-red-400 text-sm mt-2" id="jsonError"></div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex flex-wrap justify-between items-center px-6 py-4 border-t border-white/10 gap-3">
+                <div class="flex flex-wrap gap-2">
+                    <button id="exportBtn" class="btn-secondary px-4 py-2 rounded-full text-sm font-semibold">
+                        <i class="fas fa-download mr-1"></i>Export
+                    </button>
+                    <button id="importBtn" class="btn-secondary px-4 py-2 rounded-full text-sm font-semibold">
+                        <i class="fas fa-upload mr-1"></i>Import
+                    </button>
+                    <button id="resetBtn" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-full text-sm font-semibold transition">
+                        <i class="fas fa-trash mr-1"></i>Reset to Default
+                    </button>
+                </div>
+                <div class="flex gap-2">
+                    <button id="applyBtn" class="btn-primary px-6 py-2 rounded-full font-semibold text-dark">
+                        <i class="fas fa-check mr-1"></i>Apply & Refresh
+                    </button>
+                    <button id="closeConfigBtn" class="btn-secondary px-6 py-2 rounded-full font-semibold">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Completion Popup -->
+    <div class="fixed inset-0 z-[2000] hidden justify-center items-center bg-black/80" id="timerPopup">
+        <div class="popup-bounce bg-gradient-to-br from-primary to-red-500 rounded-3xl p-10 text-center max-w-md mx-4">
+            <div class="text-6xl mb-4">⏰</div>
+            <h2 class="text-4xl font-bold mb-3">Time's Up!</h2>
+            <p class="text-xl mb-6">Please wrap up your challenge and prepare for the next round.</p>
+            <button id="closeTimerPopup" class="bg-white text-primary px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-100 transition">
+                <i class="fas fa-check mr-2"></i>OK
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast fixed top-6 left-1/2 bg-green-500 text-white px-6 py-3 rounded-xl font-bold z-[3000] shadow-lg" id="toast"></div>
+
+    <!-- Hidden File Input for Import -->
+    <input type="file" id="importFileInput" accept=".json" class="hidden">
+
+    <script>
+        // ===== Default Configuration =====
+        const DEFAULT_CONFIG = {
+            timerDefaultSeconds: 900,
+            enableDragAndDrop: false,
+            groups: [
+                { name: "Group 1", color: "#FF8C42" },
+                { name: "Group 2", color: "#2E86AB" },
+                { name: "Group 3", color: "#A23B72" },
+                { name: "Group 4", color: "#F18F01" },
+                { name: "Group 5", color: "#27AE60" }
+            ],
+            cards: [
+                { id: 1, type: "🎵 Music", task: "Generate an opening music for today's meeting in your favorite movie style", platforms: "Gemini, Suno/Udio", groupHint: "Suitable for Group 1 or all" },
+                { id: 2, type: "🎵 Music", task: "Rewrite 'Two Tigers' with lyrics covering real workplace pain points!", platforms: "Gemini, Suno/Udio", groupHint: "Suitable for Group 2" },
+                { id: 3, type: "🖼️ Image", task: "HR team building — everyone riding lobsters racing through the city", platforms: "Doubao, Jimeng, Minimax, Gemini", groupHint: "Suitable for Group 3" },
+                { id: 4, type: "🖼️ Image", task: "Depict an office scene 10 years from now with humans and AI/robots working together", platforms: "Doubao, Jimeng, Minimax, Gemini", groupHint: "Suitable for all groups" },
+                { id: 5, type: "🖼️ Image", task: "In Van Gogh's 'Starry Night', every star is a glowing Excel chart", platforms: "Doubao, Jimeng, Minimax, Gemini", groupHint: "Suitable for Group 5" }
+            ]
+        };
+
+        // ===== Application State =====
+        let appConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+        let assignments = [];
+        let timerInterval = null;
+        let timeLeft = 900;
+        let isTimerRunning = false;
+        let nextCardId = 6;
+
+        // ===== DOM Elements =====
+        const timerDisplay = document.getElementById('timerDisplay');
+        const assignmentArea = document.getElementById('assignmentArea');
+        const configModal = document.getElementById('configModal');
+        const toast = document.getElementById('toast');
+        const timerPopup = document.getElementById('timerPopup');
+        const importFileInput = document.getElementById('importFileInput');
+
+        // ===== Utility Functions =====
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = 'toast fixed top-6 left-1/2 px-6 py-3 rounded-xl font-bold z-[3000] shadow-lg ' + (isError ? 'bg-red-500' : 'bg-green-500');
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function playTimerSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+                gainNode.gain.value = 0.3;
+                oscillator.start();
+                setTimeout(() => { oscillator.frequency.value = 1000; }, 200);
+                setTimeout(() => { oscillator.frequency.value = 1200; }, 400);
+                setTimeout(() => { oscillator.stop(); audioCtx.close(); }, 600);
+            } catch (e) {
+                console.warn('Audio not supported:', e);
+            }
+        }
+
+        // ===== Configuration Management =====
+        function loadConfigFromLocal() {
+            try {
+                const saved = localStorage.getItem('ai_challenge_config');
+                return saved ? JSON.parse(saved) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveConfigToLocal(config) {
+            try {
+                localStorage.setItem('ai_challenge_config', JSON.stringify(config));
+            } catch (e) {
+                console.warn('Failed to save to localStorage:', e);
+            }
+        }
+
+        async function loadConfig() {
+            let config = loadConfigFromLocal();
+            if (!config) {
+                try {
+                    const response = await fetch('./config.json');
+                    config = await response.json();
+                    showToast('Configuration loaded from config.json');
+                } catch (e) {
+                    config = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+                }
+            }
+            appConfig = config;
+            timeLeft = appConfig.timerDefaultSeconds || 900;
+            updateTimerDisplay();
+            initApp();
+        }
+
+        function initApp() {
+            renderAssignmentArea();
+            updateConfigPanel();
+        }
+
+        // ===== Assignment Functions =====
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function assignChallenges() {
+            const groups = appConfig.groups;
+            const cards = appConfig.cards;
+
+            if (cards.length < groups.length) {
+                showToast(`Not enough cards. Please add at least ${groups.length} cards in config.`, true);
+                return;
+            }
+
+            const shuffledCards = shuffleArray(cards);
+            assignments = groups.map((group, index) => ({
+                groupId: index,
+                groupName: group.name,
+                groupColor: group.color,
+                card: shuffledCards[index]
+            }));
+
+            renderAssignmentResults();
+            showToast('Challenges assigned successfully!');
+        }
+
+        function reassignAll() {
+            if (assignments.length === 0) {
+                showToast('No assignments to re-assign. Click "Assign Challenges" first.', true);
+                return;
+            }
+            assignChallenges();
+        }
+
+        function reassignSingle(groupIndex) {
+            const cards = appConfig.cards;
+            const currentCardId = assignments[groupIndex].card.id;
+            const otherCardIds = assignments.filter((_, i) => i !== groupIndex).map(a => a.card.id);
+            const availableCards = cards.filter(c => c.id !== currentCardId && !otherCardIds.includes(c.id));
+
+            if (availableCards.length === 0) {
+                showToast('No unique cards available for re-assignment.', true);
+                return;
+            }
+
+            const newCard = availableCards[Math.floor(Math.random() * availableCards.length)];
+            assignments[groupIndex].card = newCard;
+            renderAssignmentResults();
+            showToast(`Re-assigned ${assignments[groupIndex].groupName}`);
+        }
+
+        // ===== Rendering Functions =====
+        function renderAssignmentArea() {
+            if (assignments.length === 0) {
+                assignmentArea.innerHTML = `
+                    <div class="glass-card rounded-3xl p-12 text-center">
+                        <div class="animate-float">
+                            <i class="fas fa-hand-pointer text-6xl text-primary mb-6"></i>
+                        </div>
+                        <h3 class="text-3xl font-bold mb-3 text-gray-200">Welcome!</h3>
+                        <p class="text-gray-400 text-lg mb-6">Click "Assign Challenges" to randomly distribute challenge cards to all groups.</p>
+                        <div class="flex justify-center gap-4 text-sm text-gray-500">
+                            <span><i class="fas fa-users mr-1"></i>${appConfig.groups.length} Groups</span>
+                            <span><i class="fas fa-layer-group mr-1"></i>${appConfig.cards.length} Cards</span>
+                            <span><i class="fas fa-random mr-1"></i>Random Assignment</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                renderAssignmentResults();
+            }
+        }
+
+        function renderAssignmentResults() {
+            const dragDropEnabled = appConfig.enableDragAndDrop;
+            let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">';
+
+            assignments.forEach((assignment, index) => {
+                const cardImages = {
+                    '🎵 Music': 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80',
+                    '🖼️ Image': 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?w=400&q=80',
+                    '📝 Text': 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80',
+                    '🎬 Video': 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=400&q=80'
+                };
+                const imageUrl = cardImages[assignment.card.type] || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33a4?w=400&q=80';
+
+                html += `
+                    <div class="glass-card glass-card-hover rounded-2xl overflow-hidden transition-all duration-300 relative" 
+                         style="border-top: 4px solid ${assignment.groupColor};"
+                         draggable="${dragDropEnabled}"
+                         data-index="${index}"
+                         ondragstart="handleDragStart(event, ${index})"
+                         ondragover="handleDragOver(event)"
+                         ondragleave="handleDragLeave(event)"
+                         ondrop="handleDrop(event, ${index})">
+                        <div class="h-40 bg-cover bg-center relative" style="background-image: url('${imageUrl}');">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                                <span class="text-sm font-bold px-3 py-1 rounded-full bg-black/50 backdrop-blur-sm" style="color: ${assignment.groupColor};">
+                                    <i class="fas fa-users mr-1"></i>${assignment.groupName}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xl font-semibold">${assignment.card.type}</span>
+                                <button class="text-gray-400 hover:text-primary transition p-1" onclick="reassignSingle(${index})" title="Re-assign">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <p class="text-base text-gray-300 mb-4 leading-relaxed">${assignment.card.task}</p>
+                            <div class="flex items-center gap-2 text-sm text-gray-400">
+                                <i class="fas fa-tools text-primary"></i>
+                                <span>Referred: ${assignment.card.platforms}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            assignmentArea.innerHTML = html;
+        }
+
+        // ===== Drag and Drop =====
+        let dragIndex = null;
+
+        function handleDragStart(event, index) {
+            dragIndex = index;
+            event.target.classList.add('card-dragging');
+            event.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            event.currentTarget.classList.add('card-drag-over');
+        }
+
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('card-drag-over');
+        }
+
+        function handleDrop(event, targetIndex) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('card-drag-over');
+
+            if (dragIndex !== null && dragIndex !== targetIndex) {
+                const temp = assignments[dragIndex];
+                assignments[dragIndex] = assignments[targetIndex];
+                assignments[targetIndex] = temp;
+                renderAssignmentResults();
+                showToast('Cards swapped!');
+            }
+            dragIndex = null;
+        }
+
+        // ===== Timer Functions =====
+        function startTimer() {
+            if (timeLeft <= 0) {
+                timeLeft = appConfig.timerDefaultSeconds;
+                updateTimerDisplay();
+            }
+            if (timerInterval) clearInterval(timerInterval);
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0 && isTimerRunning) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    playTimerSound();
+                    timerPopup.classList.remove('hidden');
+                    timerPopup.classList.add('flex');
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            isTimerRunning = false;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeLeft = appConfig.timerDefaultSeconds;
+            updateTimerDisplay();
+        }
+
+        // ===== Config Panel Functions =====
+        function updateConfigPanel() {
+            document.getElementById('timerDuration').value = appConfig.timerDefaultSeconds;
+            document.getElementById('dragDropToggle').checked = appConfig.enableDragAndDrop;
+            renderGroupsList();
+            renderCardsList();
+            updateJsonEditor();
+        }
+
+        function renderGroupsList() {
+            const container = document.getElementById('groupsList');
+            container.innerHTML = appConfig.groups.map((group, index) => `
+                <div class="glass-card rounded-xl p-3" data-index="${index}">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <input type="text" value="${group.name}" onchange="updateGroup(${index}, 'name', this.value)" placeholder="Group name" class="flex-1 min-w-[120px] py-2 px-3 rounded-lg">
+                        <input type="color" value="${group.color}" onchange="updateGroup(${index}, 'color', this.value)" class="w-12 h-10 rounded-lg">
+                        <button class="bg-red-500 hover:bg-red-600 w-8 h-8 rounded-full text-white transition" onclick="removeGroup(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderCardsList() {
+            const container = document.getElementById('cardsList');
+            container.innerHTML = appConfig.cards.map((card, index) => `
+                <div class="glass-card rounded-xl p-4" data-index="${index}">
+                    <div class="mb-3">
+                        <label class="block text-xs text-gray-400 mb-1">Type</label>
+                        <input type="text" value="${card.type}" onchange="updateCard(${index}, 'type', this.value)" placeholder="e.g., 🎵 Music" class="w-full py-2 px-3 rounded-lg">
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-xs text-gray-400 mb-1">Task</label>
+                        <textarea onchange="updateCard(${index}, 'task', this.value)" placeholder="Challenge task description" class="w-full py-2 px-3 rounded-lg min-h-[60px]">${card.task}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-xs text-gray-400 mb-1">Referred Platforms</label>
+                        <input type="text" value="${card.platforms}" onchange="updateCard(${index}, 'platforms', this.value)" placeholder="e.g., Gemini, Suno/Udio" class="w-full py-2 px-3 rounded-lg">
+                    </div>
+                    <button class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-full text-sm transition" onclick="removeCard(${index})">
+                        <i class="fas fa-trash mr-1"></i>Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function updateGroup(index, field, value) {
+            appConfig.groups[index][field] = value;
+            updateJsonEditor();
+        }
+
+        function removeGroup(index) {
+            if (appConfig.groups.length <= 1) {
+                showToast('Must have at least 1 group.', true);
+                return;
+            }
+            appConfig.groups.splice(index, 1);
+            renderGroupsList();
+            updateJsonEditor();
+        }
+
+        function addGroup() {
+            const newIndex = appConfig.groups.length + 1;
+            appConfig.groups.push({
+                name: `Group ${newIndex}`,
+                color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0')
+            });
+            renderGroupsList();
+            updateJsonEditor();
+        }
+
+        function updateCard(index, field, value) {
+            appConfig.cards[index][field] = value;
+            updateJsonEditor();
+        }
+
+        function removeCard(index) {
+            if (appConfig.cards.length <= 1) {
+                showToast('Must have at least 1 card.', true);
+                return;
+            }
+            appConfig.cards.splice(index, 1);
+            renderCardsList();
+            updateJsonEditor();
+        }
+
+        function addCard() {
+            appConfig.cards.push({
+                id: nextCardId++,
+                type: "🎵 Music",
+                task: "Enter your challenge task here",
+                platforms: "Gemini, Suno/Udio",
+                groupHint: "Suitable for all groups"
+            });
+            renderCardsList();
+            updateJsonEditor();
+        }
+
+        function updateJsonEditor() {
+            const configToExport = {
+                timerDefaultSeconds: parseInt(document.getElementById('timerDuration').value) || 900,
+                enableDragAndDrop: document.getElementById('dragDropToggle').checked,
+                groups: appConfig.groups,
+                cards: appConfig.cards
+            };
+            document.getElementById('jsonEditor').value = JSON.stringify(configToExport, null, 2);
+            document.getElementById('jsonError').textContent = '';
+        }
+
+        function updateFromJson() {
+            const jsonText = document.getElementById('jsonEditor').value;
+            try {
+                const parsed = JSON.parse(jsonText);
+                if (!parsed.groups || !Array.isArray(parsed.groups)) throw new Error('Missing groups array');
+                if (!parsed.cards || !Array.isArray(parsed.cards)) throw new Error('Missing cards array');
+                appConfig = parsed;
+                renderGroupsList();
+                renderCardsList();
+                document.getElementById('timerDuration').value = appConfig.timerDefaultSeconds || 900;
+                document.getElementById('dragDropToggle').checked = appConfig.enableDragAndDrop || false;
+                document.getElementById('jsonError').textContent = '';
+                return true;
+            } catch (e) {
+                document.getElementById('jsonError').textContent = 'Invalid JSON: ' + e.message;
+                return false;
+            }
+        }
+
+        function applyConfig() {
+            const activeTab = document.querySelector('.tab.active');
+            if (activeTab && activeTab.dataset.tab === 'json') {
+                if (!updateFromJson()) return;
+            } else {
+                appConfig.timerDefaultSeconds = parseInt(document.getElementById('timerDuration').value) || 900;
+                appConfig.enableDragAndDrop = document.getElementById('dragDropToggle').checked;
+            }
+
+            saveConfigToLocal(appConfig);
+            timeLeft = appConfig.timerDefaultSeconds;
+            updateTimerDisplay();
+            renderAssignmentResults();
+            showToast('Configuration applied and saved!');
+            closeConfigModal();
+        }
+
+        function exportConfig() {
+            const configToExport = {
+                timerDefaultSeconds: parseInt(document.getElementById('timerDuration').value) || 900,
+                enableDragAndDrop: document.getElementById('dragDropToggle').checked,
+                groups: appConfig.groups,
+                cards: appConfig.cards
+            };
+            const blob = new Blob([JSON.stringify(configToExport, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Configuration exported!');
+        }
+
+        function importConfig() {
+            importFileInput.click();
+        }
+
+        function handleImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (!imported.groups || !imported.cards) throw new Error('Invalid config format');
+                    appConfig = imported;
+                    saveConfigToLocal(appConfig);
+                    timeLeft = appConfig.timerDefaultSeconds || 900;
+                    updateTimerDisplay();
+                    updateConfigPanel();
+                    renderAssignmentResults();
+                    showToast('Configuration imported successfully!');
+                } catch (err) {
+                    showToast('Failed to import: ' + err.message, true);
+                }
+            };
+            reader.readAsText(file);
+            importFileInput.value = '';
+        }
+
+        function resetConfig() {
+            if (confirm('Reset all settings to default? This cannot be undone.')) {
+                localStorage.removeItem('ai_challenge_config');
+                appConfig = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+                timeLeft = appConfig.timerDefaultSeconds;
+                updateTimerDisplay();
+                updateConfigPanel();
+                assignments = [];
+                renderAssignmentArea();
+                showToast('Configuration reset to default!');
+            }
+        }
+
+        function openConfigModal() {
+            updateConfigPanel();
+            configModal.classList.remove('hidden');
+            configModal.classList.add('flex');
+        }
+
+        function closeConfigModal() {
+            configModal.classList.add('hidden');
+            configModal.classList.remove('flex');
+        }
+
+        // ===== Event Listeners =====
+        document.getElementById('configBtn').addEventListener('click', openConfigModal);
+        document.getElementById('configClose').addEventListener('click', closeConfigModal);
+        document.getElementById('closeConfigBtn').addEventListener('click', closeConfigModal);
+        document.getElementById('applyBtn').addEventListener('click', applyConfig);
+        document.getElementById('exportBtn').addEventListener('click', exportConfig);
+        document.getElementById('importBtn').addEventListener('click', importConfig);
+        document.getElementById('resetBtn').addEventListener('click', resetConfig);
+        document.getElementById('addGroupBtn').addEventListener('click', addGroup);
+        document.getElementById('addCardBtn').addEventListener('click', addCard);
+        document.getElementById('assignBtn').addEventListener('click', assignChallenges);
+        document.getElementById('reassignAllBtn').addEventListener('click', reassignAll);
+        document.getElementById('timerStart').addEventListener('click', startTimer);
+        document.getElementById('timerPause').addEventListener('click', pauseTimer);
+        document.getElementById('timerReset').addEventListener('click', resetTimer);
+        document.getElementById('closeTimerPopup').addEventListener('click', () => {
+            timerPopup.classList.add('hidden');
+            timerPopup.classList.remove('flex');
+        });
+        document.getElementById('timerMinus').addEventListener('click', () => {
+            const input = document.getElementById('timerDuration');
+            input.value = Math.max(10, parseInt(input.value) - 60);
+            updateJsonEditor();
+        });
+        document.getElementById('timerPlus').addEventListener('click', () => {
+            const input = document.getElementById('timerDuration');
+            input.value = Math.min(3600, parseInt(input.value) + 60);
+            updateJsonEditor();
+        });
+        document.getElementById('timerDuration').addEventListener('change', updateJsonEditor);
+        document.getElementById('dragDropToggle').addEventListener('change', updateJsonEditor);
+        importFileInput.addEventListener('change', handleImport);
+
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.classList.remove('tab-active');
+                    t.classList.add('text-gray-400');
+                });
+                document.querySelectorAll('.tab-content').forEach(c => {
+                    c.classList.remove('active');
+                    c.classList.add('hidden');
+                });
+                tab.classList.add('tab-active');
+                tab.classList.remove('text-gray-400');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.remove('hidden');
+                document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+            });
+        });
+
+        // Close modal on ESC or click outside
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeConfigModal();
+        });
+        configModal.addEventListener('click', (e) => {
+            if (e.target === configModal) closeConfigModal();
+        });
+
+        // ===== Initialize =====
+        loadConfig();
+    </script>
+</body>
+</html>

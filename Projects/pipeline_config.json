@@ -1,0 +1,4 @@
+{
+    "frontend_tech_stack": "Vue 3 + Element Plus + Vite",
+    "backend_tech_stack": "Java 17 + Spring Boot 3 + MySQL + MyBatis"
+}
