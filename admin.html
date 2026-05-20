@@ -249,7 +249,7 @@
                 <div class="card-title"><i class="fas fa-qrcode"></i> Voting QR Code</div>
                 <div class="qr-section">
                     <p style="color: #94a3b8; margin-bottom: 12px;">Scan this QR code to access the voting page</p>
-                    <div class="qr-code" id="qrCode"></div>
+                    <img src="QR Code for Voting Page.png" alt="Voting QR Code" style="max-width: 200px; border-radius: 8px;">
                     <p style="color: #64748b; font-size: 12px; margin-top: 12px;" id="qrUrl"></p>
                 </div>
             </div>
@@ -271,8 +271,6 @@
         <a href="results.html" class="back-link"><i class="fas fa-chart-bar"></i> View Results</a>
     </div>
 
-    <!-- QR Code Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script src="voting-config.js"></script>
     <script>
         // ===== Login =====
@@ -290,7 +288,7 @@
         // ===== Admin Functions =====
         async function initAdmin() {
             await loadStats();
-            generateQRCode();
+            document.getElementById('qrUrl').textContent = VOTING_CONFIG.VOTING_PAGE_URL;
         }
 
         async function loadStats() {
@@ -362,24 +360,6 @@
             } catch (error) {
                 console.error('Failed to reset votes:', error);
                 alert('Failed to reset votes. Please try again.');
-            }
-        }
-
-        // ===== QR Code =====
-        function generateQRCode() {
-            const url = VOTING_CONFIG.VOTING_PAGE_URL;
-            document.getElementById('qrUrl').textContent = url;
-
-            if (typeof QRCode !== 'undefined') {
-                QRCode.toCanvas(document.getElementById('qrCode'), url, {
-                    width: 176,
-                    margin: 1,
-                    color: { dark: '#1a2a3a', light: '#ffffff' }
-                }, function (error) {
-                    if (error) console.error('QR Code generation failed:', error);
-                });
-            } else {
-                document.getElementById('qrCode').innerHTML = '<p style="color: #64748b; padding: 40px;">QR library not loaded</p>';
             }
         }
 
