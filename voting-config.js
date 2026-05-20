@@ -81,8 +81,9 @@ const SupabaseAPI = {
     },
 
     async deleteAllVotes() {
-        // Delete all votes - use id filter with correct Supabase syntax
-        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?id=is.not.null`;
+        // Delete all votes - use a filter that matches all records
+        // For Supabase, use a condition that always evaluates to true
+        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?created_at=gte.1970-01-01`;
         const response = await fetch(url, {
             method: 'DELETE',
             headers: this.getHeaders()
