@@ -81,12 +81,16 @@ const SupabaseAPI = {
     },
 
     async deleteAllVotes() {
-        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?id=not.is.null`;
+        // Delete all votes - use id filter with correct Supabase syntax
+        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?id=is.not.null`;
         const response = await fetch(url, {
             method: 'DELETE',
             headers: this.getHeaders()
         });
-        if (!response.ok) throw new Error(`Delete all failed: ${response.status} ${response.statusText}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Delete all failed: ${response.status} ${response.statusText} - ${errorText}`);
+        }
         return response.json();
     }
 };
