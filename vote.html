@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI Prompt Challenge - Vote for Winners</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 50%, #2c3e50 100%);
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFD966, #FF8C42, #f39c12);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        .header p { color: #94a3b8; font-size: 14px; }
+        .status-bar {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.15);
+            margin: 0 16px 20px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .status-active { color: #22c55e; }
+        .status-ended { color: #ef4444; }
+        .timer-display {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .award-section {
+            margin: 0 16px 24px;
+        }
+        .award-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .award-title {
+            font-size: 20px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .award-title i { color: #f39c12; }
+        .selection-count {
+            font-size: 14px;
+            color: #94a3b8;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .selection-count.complete { color: #22c55e; background: rgba(34,197,94,0.15); }
+        .card-list { display: flex; flex-direction: column; gap: 12px; }
+        .vote-card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .vote-card:hover { background: rgba(255,255,255,0.1); }
+        .vote-card.selected {
+            border-color: #f39c12;
+            background: rgba(243,156,18,0.15);
+            box-shadow: 0 0 20px rgba(243,156,18,0.3);
+        }
+        .vote-card.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .vote-card .check-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .vote-card.selected .check-icon {
+            background: #f39c12;
+            border-color: #f39c12;
+        }
+        .vote-card .check-icon i { font-size: 12px; color: transparent; }
+        .vote-card.selected .check-icon i { color: #fff; }
+        .card-group {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card-group .color-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .card-type {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f39c12;
+            margin-bottom: 4px;
+        }
+        .card-task {
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.4;
+        }
+        .submit-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15,26,36,0.95);
+            backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 16px 20px;
+            display: flex;
+            gap: 12px;
+        }
+        .submit-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .submit-btn.primary {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #1a2a3a;
+        }
+        .submit-btn.primary:disabled {
+            background: rgba(255,255,255,0.1);
+            color: #64748b;
+            cursor: not-allowed;
+        }
+        .submit-btn.secondary {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            flex: 0 0 auto;
+            padding: 14px 20px;
+        }
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+            animation: bounceIn 0.5s ease;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-content .icon { font-size: 48px; margin-bottom: 16px; }
+        .modal-content h2 { font-size: 24px; margin-bottom: 8px; }
+        .modal-content p { color: #94a3b8; margin-bottom: 20px; }
+        .modal-btn {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: #1a2a3a;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+        .loading i { margin-right: 8px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-trophy"></i> AI Prompt Challenge</h1>
+        <p>Vote for your favorite submissions</p>
+    </div>
+
+    <div class="status-bar">
+        <span id="votingStatus"><i class="fas fa-circle status-active"></i> Voting Active</span>
+        <span class="timer-display" id="timeRemaining">02:00</span>
+    </div>
+
+    <div id="loadingState" class="loading">
+        <i class="fas fa-spinner"></i> Loading challenge cards...
+    </div>
+
+    <div id="votingContent" style="display: none;">
+        <!-- Best Creative Award -->
+        <div class="award-section">
+            <div class="award-header">
+                <div class="award-title"><i class="fas fa-palette"></i> Best Creative</div>
+                <div class="selection-count" id="creativeCount">Selected: 0/2</div>
+            </div>
+            <div class="card-list" id="creativeCards"></div>
+        </div>
+
+        <!-- Prompt Master Award -->
+        <div class="award-section">
+            <div class="award-header">
+                <div class="award-title"><i class="fas fa-wand-magic-sparkles"></i> Prompt Master</div>
+                <div class="selection-count" id="promptCount">Selected: 0/2</div>
+            </div>
+            <div class="card-list" id="promptCards"></div>
+        </div>
+    </div>
+
+    <div class="submit-bar" id="submitBar" style="display: none;">
+        <button class="submit-btn secondary" onclick="window.location.href='results.html'">
+            <i class="fas fa-chart-bar"></i> Results
+        </button>
+        <button class="submit-btn primary" id="submitBtn" disabled>
+            <i class="fas fa-paper-plane"></i> Submit Votes
+        </button>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal-overlay" id="successModal">
+        <div class="modal-content">
+            <div class="icon">🎉</div>
+            <h2>Thank You!</h2>
+            <p>Your votes have been recorded successfully.</p>
+            <button class="modal-btn" onclick="window.location.href='results.html'">View Results</button>
+        </div>
+    </div>
+
+    <!-- Already Voted Modal -->
+    <div class="modal-overlay" id="alreadyVotedModal">
+        <div class="modal-content">
+            <div class="icon">✅</div>
+            <h2>Already Voted</h2>
+            <p>You have already voted. Thank you for participating!</p>
+            <button class="modal-btn" onclick="window.location.href='results.html'">View Results</button>
+        </div>
+    </div>
+
+    <!-- Voting Ended Modal -->
+    <div class="modal-overlay" id="votingEndedModal">
+        <div class="modal-content">
+            <div class="icon">⏰</div>
+            <h2>Voting Ended</h2>
+            <p>The voting session has ended. Thank you!</p>
+            <button class="modal-btn" onclick="window.location.href='results.html'">View Results</button>
+        </div>
+    </div>
+
+    <script src="voting-config.js"></script>
+    <script>
+        // ===== State =====
+        let challengeCards = [];
+        let selections = { bestCreative: [], promptMaster: [] };
+        let votingActive = true;
+        let timeLeft = VOTING_CONFIG.VOTING_TIME_LIMIT_SECONDS;
+        let timerInterval = null;
+
+        // ===== Initialize =====
+        async function init() {
+            const sessionId = SessionManager.getSessionId();
+
+            // Check if already voted
+            try {
+                if (SessionManager.hasVoted()) {
+                    const voted = await BmobAPI.checkVoted(sessionId);
+                    if (voted) {
+                        document.getElementById('alreadyVotedModal').classList.add('show');
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to check voted status:', e);
+            }
+
+            // Check voting session status
+            try {
+                const session = await BmobAPI.getVotingSession();
+                if (session && !session.isActive) {
+                    votingActive = false;
+                    document.getElementById('votingStatus').innerHTML = '<i class="fas fa-circle status-ended"></i> Voting Ended';
+                }
+            } catch (e) {
+                console.warn('Failed to get voting session:', e);
+            }
+
+            // Load challenge cards from assignment results
+            const assignedCards = localStorage.getItem('voting_challenge_cards');
+            if (assignedCards) {
+                try {
+                    challengeCards = JSON.parse(assignedCards);
+                } catch (e) {
+                    console.error('Failed to parse assigned cards:', e);
+                }
+            }
+
+            // Fallback: use config cards
+            if (challengeCards.length === 0) {
+                const stored = localStorage.getItem('ai_challenge_config');
+                if (stored) {
+                    try {
+                        const config = JSON.parse(stored);
+                        challengeCards = config.cards || [];
+                    } catch (e) {
+                        console.error('Failed to parse config:', e);
+                    }
+                }
+            }
+
+            // Fallback: use default cards if none found
+            if (challengeCards.length === 0) {
+                challengeCards = [
+                    { id: 1, type: "🎵 Music", task: "Generate an opening music for today's meeting in your favorite movie style", platforms: "Gemini, Suno/Udio" },
+                    { id: 2, type: "🎵 Music", task: "Rewrite 'Two Tigers' with lyrics covering real workplace pain points!", platforms: "Gemini, Suno/Udio" },
+                    { id: 3, type: "🖼️ Image", task: "HR team building — everyone riding lobsters racing through the city", platforms: "Doubao, Jimeng, Minimax, Gemini" },
+                    { id: 4, type: "🖼️ Image", task: "Depict an office scene 10 years from now with humans and AI/robots working together", platforms: "Doubao, Jimeng, Minimax, Gemini" },
+                    { id: 5, type: "🖼️ Image", task: "In Van Gogh's 'Starry Night', every star is a glowing Excel chart", platforms: "Doubao, Jimeng, Minimax, Gemini" }
+                ];
+            }
+
+            renderCards();
+            startTimer();
+
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('votingContent').style.display = 'block';
+            document.getElementById('submitBar').style.display = 'flex';
+        }
+
+        // ===== Render Cards =====
+        function renderCards() {
+            const creativeContainer = document.getElementById('creativeCards');
+            const promptContainer = document.getElementById('promptCards');
+
+            creativeContainer.innerHTML = '';
+            promptContainer.innerHTML = '';
+
+            challengeCards.forEach(card => {
+                const groupName = card.groupName || `Group ${card.id}`;
+                const groupColor = card.groupColor || getGroupColor(card.id);
+                const cardHTML = `
+                    <div class="vote-card" data-id="${card.id}" data-award="bestCreative" onclick="toggleVote('bestCreative', ${card.id}, this)">
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                        <div class="card-group"><span class="color-dot" style="background: ${groupColor}"></span>${groupName}</div>
+                        <div class="card-type">${card.type}</div>
+                        <div class="card-task">${card.task}</div>
+                    </div>
+                `;
+                creativeContainer.innerHTML += cardHTML;
+
+                const promptHTML = `
+                    <div class="vote-card" data-id="${card.id}" data-award="promptMaster" onclick="toggleVote('promptMaster', ${card.id}, this)">
+                        <div class="check-icon"><i class="fas fa-check"></i></div>
+                        <div class="card-group"><span class="color-dot" style="background: ${groupColor}"></span>${groupName}</div>
+                        <div class="card-type">${card.type}</div>
+                        <div class="card-task">${card.task}</div>
+                    </div>
+                `;
+                promptContainer.innerHTML += promptHTML;
+            });
+        }
+
+        function getGroupColor(id) {
+            const colors = ['#FF8C42', '#2E86AB', '#A23B72', '#F18F01', '#27AE60'];
+            return colors[(id - 1) % colors.length];
+        }
+
+        // ===== Toggle Vote =====
+        function toggleVote(award, cardId, element) {
+            if (!votingActive) return;
+
+            const arr = selections[award];
+            const index = arr.indexOf(cardId);
+
+            if (index > -1) {
+                // Deselect
+                arr.splice(index, 1);
+                element.classList.remove('selected');
+            } else {
+                // Check if already at max
+                if (arr.length >= VOTING_CONFIG.VOTES_PER_AWARD) {
+                    return;
+                }
+                arr.push(cardId);
+                element.classList.add('selected');
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            const creativeCount = selections.bestCreative.length;
+            const promptCount = selections.promptMaster.length;
+
+            // Update counters
+            const creativeEl = document.getElementById('creativeCount');
+            creativeEl.textContent = `Selected: ${creativeCount}/2`;
+            creativeEl.classList.toggle('complete', creativeCount === 2);
+
+            const promptEl = document.getElementById('promptCount');
+            promptEl.textContent = `Selected: ${promptCount}/2`;
+            promptEl.classList.toggle('complete', promptCount === 2);
+
+            // Disable cards that can't be selected
+            document.querySelectorAll('.vote-card[data-award="bestCreative"]').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                if (creativeCount >= 2 && !selections.bestCreative.includes(id)) {
+                    el.classList.add('disabled');
+                } else {
+                    el.classList.remove('disabled');
+                }
+            });
+
+            document.querySelectorAll('.vote-card[data-award="promptMaster"]').forEach(el => {
+                const id = parseInt(el.dataset.id);
+                if (promptCount >= 2 && !selections.promptMaster.includes(id)) {
+                    el.classList.add('disabled');
+                } else {
+                    el.classList.remove('disabled');
+                }
+            });
+
+            // Enable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = !(creativeCount === 2 && promptCount === 2);
+        }
+
+        // ===== Submit Votes =====
+        document.getElementById('submitBtn').addEventListener('click', async () => {
+            if (selections.bestCreative.length !== 2 || selections.promptMaster.length !== 2) {
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+            try {
+                const sessionId = SessionManager.getSessionId();
+                await BmobAPI.create('Vote', {
+                    voterSessionId: sessionId,
+                    bestCVotes: selections.bestCreative,
+                    promptMVotes: selections.promptMaster
+                });
+
+                SessionManager.markAsVoted();
+                document.getElementById('successModal').classList.add('show');
+            } catch (error) {
+                console.error('Vote submission failed:', error);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Votes';
+                alert('Failed to submit votes. Please try again.');
+            }
+        });
+
+        // ===== Timer =====
+        function startTimer() {
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    votingActive = false;
+                    document.getElementById('votingStatus').innerHTML = '<i class="fas fa-circle status-ended"></i> Voting Ended';
+                    document.getElementById('submitBtn').disabled = true;
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timeRemaining').textContent =
+                `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
