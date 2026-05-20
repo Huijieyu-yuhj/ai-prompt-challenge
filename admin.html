@@ -295,17 +295,17 @@
 
         async function loadStats() {
             try {
-                const votesData = await BmobAPI.getAllVotes();
-                const votes = votesData.results || [];
+                const votesData = await SupabaseAPI.getAllVotes();
+                const votes = Array.isArray(votesData) ? votesData : (votesData.results || []);
 
                 document.getElementById('totalVoters').textContent = votes.length;
                 document.getElementById('totalVotes').textContent =
                     votes.reduce((sum, v) =>
-                        sum + (v.bestCVotes?.length || 0) + (v.promptMVotes?.length || 0), 0);
+                        sum + (v.best_c_votes?.length || 0) + (v.prompt_m_votes?.length || 0), 0);
 
-                const session = await BmobAPI.getVotingSession();
+                const session = await SupabaseAPI.getVotingSession();
                 const statusEl = document.getElementById('sessionStatus');
-                if (session && session.isActive) {
+                if (session && session.is_active) {
                     statusEl.textContent = 'Active';
                     statusEl.style.color = '#22c55e';
                 } else {
@@ -321,11 +321,11 @@
             if (!confirm('Start voting session? Participants will be able to vote.')) return;
 
             try {
-                const session = await BmobAPI.getVotingSession();
+                const session = await SupabaseAPI.getVotingSession();
                 if (session) {
-                    await BmobAPI.update('VotingSession', session.objectId, { isActive: true });
+                    await SupabaseAPI.update('voting_session', 'id', session.id, { is_active: true });
                 } else {
-                    await BmobAPI.create('VotingSession', { isActive: true });
+                    await SupabaseAPI.create('voting_session', { is_active: true });
                 }
                 alert('Voting session started!');
                 loadStats();
@@ -339,9 +339,9 @@
             if (!confirm('Stop voting session? Participants will no longer be able to vote.')) return;
 
             try {
-                const session = await BmobAPI.getVotingSession();
+                const session = await SupabaseAPI.getVotingSession();
                 if (session) {
-                    await BmobAPI.update('VotingSession', session.objectId, { isActive: false });
+                    await SupabaseAPI.update('voting_session', 'id', session.id, { is_active: false });
                 }
                 alert('Voting session stopped!');
                 loadStats();
@@ -356,7 +356,7 @@
             if (!confirm('Are you absolutely sure? All voting data will be permanently deleted.')) return;
 
             try {
-                await BmobAPI.deleteAllVotes();
+                await SupabaseAPI.deleteAllVotes();
                 alert('All votes have been deleted.');
                 loadStats();
             } catch (error) {
@@ -386,8 +386,8 @@
         // ===== Export =====
         async function exportCSV() {
             try {
-                const votesData = await BmobAPI.getAllVotes();
-                const votes = votesData.results || [];
+                const votesData = await SupabaseAPI.getAllVotes();
+                const votes = Array.isArray(votesData) ? votesData : (votesData.results || []);
 
                 if (votes.length === 0) {
                     alert('No votes to export.');
@@ -396,10 +396,10 @@
 
                 let csv = 'Voter Session ID,Best Creative Votes,Prompt Master Votes,Timestamp\n';
                 votes.forEach(v => {
-                    const creative = (v.bestCVotes || []).join('; ');
-                    const prompt = (v.promptMVotes || []).join('; ');
-                    const time = v.createdAt || '';
-                    csv += `"${v.voterSessionId}","${creative}","${prompt}","${time}"\n`;
+                    const creative = (v.best_c_votes || []).join('; ');
+                    const prompt = (v.prompt_m_votes || []).join('; ');
+                    const time = v.created_at || '';
+                    csv += `"${v.voter_session_id}","${creative}","${prompt}","${time}"\n`;
                 });
 
                 downloadFile(csv, 'voting-results.csv', 'text/csv');
@@ -411,8 +411,8 @@
 
         async function exportJSON() {
             try {
-                const votesData = await BmobAPI.getAllVotes();
-                const votes = votesData.results || [];
+                const votesData = await SupabaseAPI.getAllVotes();
+                const votes = Array.isArray(votesData) ? votesData : (votesData.results || []);
 
                 if (votes.length === 0) {
                     alert('No votes to export.');

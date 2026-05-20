@@ -235,8 +235,8 @@
             const container = document.getElementById('resultsContainer');
 
             try {
-                const votesData = await BmobAPI.getAllVotes();
-                const votes = votesData.results || [];
+                const votesData = await SupabaseAPI.getAllVotes();
+                const votes = Array.isArray(votesData) ? votesData : (votesData.results || []);
 
                 // Load challenge cards from assignment results
                 const assignedCards = localStorage.getItem('voting_challenge_cards');
@@ -264,10 +264,10 @@
                 const creativeVotes = {};
                 const promptVotes = {};
                 votes.forEach(v => {
-                    (v.bestCVotes || []).forEach(id => {
+                    (v.best_c_votes || []).forEach(id => {
                         creativeVotes[id] = (creativeVotes[id] || 0) + 1;
                     });
-                    (v.promptMVotes || []).forEach(id => {
+                    (v.prompt_m_votes || []).forEach(id => {
                         promptVotes[id] = (promptVotes[id] || 0) + 1;
                     });
                 });
@@ -276,7 +276,7 @@
                 document.getElementById('totalVoters').textContent = votes.length;
                 document.getElementById('totalVotes').textContent =
                     votes.reduce((sum, v) =>
-                        sum + (v.bestCVotes?.length || 0) + (v.promptMVotes?.length || 0), 0);
+                        sum + (v.best_c_votes?.length || 0) + (v.prompt_m_votes?.length || 0), 0);
 
                 // Render results
                 if (votes.length === 0) {

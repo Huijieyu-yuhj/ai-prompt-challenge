@@ -318,7 +318,7 @@
             // Check if already voted
             try {
                 if (SessionManager.hasVoted()) {
-                    const voted = await BmobAPI.checkVoted(sessionId);
+                    const voted = await SupabaseAPI.checkVoted(sessionId);
                     if (voted) {
                         document.getElementById('alreadyVotedModal').classList.add('show');
                         return;
@@ -330,7 +330,7 @@
 
             // Check voting session status
             try {
-                const session = await BmobAPI.getVotingSession();
+                const session = await SupabaseAPI.getVotingSession();
                 if (session && !session.isActive) {
                     votingActive = false;
                     document.getElementById('votingStatus').innerHTML = '<i class="fas fa-circle status-ended"></i> Voting Ended';
@@ -491,10 +491,10 @@
 
             try {
                 const sessionId = SessionManager.getSessionId();
-                await BmobAPI.create('Vote', {
-                    voterSessionId: sessionId,
-                    bestCVotes: selections.bestCreative,
-                    promptMVotes: selections.promptMaster
+                await SupabaseAPI.create('votes', {
+                    voter_session_id: sessionId,
+                    best_c_votes: selections.bestCreative,
+                    prompt_m_votes: selections.promptMaster
                 });
 
                 SessionManager.markAsVoted();
