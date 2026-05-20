@@ -81,7 +81,7 @@ const SupabaseAPI = {
     },
 
     async deleteAllVotes() {
-        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?created_at=not.is.null`;
+        const url = `${VOTING_CONFIG.SUPABASE_URL}/rest/v1/votes?id=not.is.null`;
         const response = await fetch(url, {
             method: 'DELETE',
             headers: this.getHeaders()
